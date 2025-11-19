@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agentic_chat": "./agent.py:agentic_chat_graph"
+  },
+  "env": ".env"
+}
+
