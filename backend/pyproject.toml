@@ -1,0 +1,23 @@
+[project]
+name = "copilotkit-agentic-chat"
+version = "0.1.0"
+description = "CopilotKit LangGraph Agent"
+requires-python = ">=3.10"
+dependencies = [
+    "langgraph>=0.6.6",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+
+[tool.setuptools.package-data]
+"*" = ["**/*"]
+

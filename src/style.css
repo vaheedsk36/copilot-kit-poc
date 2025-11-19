@@ -1,0 +1,128 @@
+.copilotKitInput {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    border: 1px solid var(--copilot-kit-separator-color) !important;
+  }
+    
+  .copilotKitChat {
+    background-color: #fff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  /* Ensure the chat container uses flexbox layout */
+  .copilotKitChat > * {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Fix the input area at the bottom - centered with padding */
+  .copilotKitChat > div:last-child,
+  .copilotKitChat form,
+  .copilotKitChat [role="form"],
+  [data-copilot-chat-input],
+  [class*="input-container"],
+  [class*="InputContainer"],
+  [class*="input-wrapper"],
+  [class*="InputWrapper"],
+  [class*="copilot-chat-input"],
+  [class*="CopilotChatInput"] {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 1000 !important;
+    background: #fff !important;
+    width: 100% !important;
+    max-width: 896px !important; /* max-w-4xl (1024px) - padding */
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  @media (min-width: 768px) {
+    .copilotKitChat > div:last-child,
+    .copilotKitChat form,
+    .copilotKitChat [role="form"],
+    [data-copilot-chat-input],
+    [class*="input-container"],
+    [class*="InputContainer"],
+    [class*="input-wrapper"],
+    [class*="InputWrapper"],
+    [class*="copilot-chat-input"],
+    [class*="CopilotChatInput"] {
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+      max-width: 1000px !important;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .copilotKitChat > div:last-child,
+    .copilotKitChat form,
+    .copilotKitChat [role="form"],
+    [data-copilot-chat-input],
+    [class*="input-container"],
+    [class*="InputContainer"],
+    [class*="input-wrapper"],
+    [class*="InputWrapper"],
+    [class*="copilot-chat-input"],
+    [class*="CopilotChatInput"] {
+      padding-left: 2rem !important;
+      padding-right: 2rem !important;
+      max-width: 1024px !important;
+    }
+  }
+
+  /* Make messages area scrollable */
+  .copilotKitChat > div:first-child,
+  .copilotKitChat > div:not(:last-child),
+  [class*="messages"],
+  [class*="Messages"],
+  [role="log"],
+  [class*="message-list"],
+  [class*="MessageList"],
+  [class*="copilot-chat-messages"],
+  [class*="CopilotChatMessages"] {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    min-height: 0 !important;
+    padding-bottom: 120px !important; /* Space for fixed input */
+    margin-bottom: 0 !important;
+  }
+
+  /* Force light theme for suggestions and UI elements */
+  [class*="suggestion"],
+  [class*="Suggestion"],
+  [class*="copilot-suggestion"],
+  [class*="CopilotSuggestion"],
+  button[class*="suggestion"],
+  div[class*="suggestion"] {
+    background-color: #f9fafb !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+  }
+
+  [class*="suggestion"]:hover,
+  [class*="Suggestion"]:hover {
+    background-color: #f3f4f6 !important;
+  }
+
+  /* Ensure all CopilotKit elements use light theme */
+  .copilotKitChat,
+  .copilotKitChat * {
+    color-scheme: light !important;
+  }
+
+  /* Force light background for chat container */
+  [class*="copilot-chat"],
+  [class*="CopilotChat"] {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+  }

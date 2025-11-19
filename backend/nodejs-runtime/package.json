@@ -1,0 +1,20 @@
+{
+  "name": "copilotkit-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "mcp-server": "node example-mcp-server.mjs"
+  },
+  "dependencies": {
+    "@copilotkit/runtime": "^1.3.18",
+    "@copilotkit/shared": "^1.3.18",
+    "@langchain/core": "^0.3.0",
+    "@langchain/openai": "^0.3.0",
+    "@modelcontextprotocol/sdk": "^1.22.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "openai": "^4.0.0"
+  }
+}

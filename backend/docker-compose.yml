@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  langgraph-redis:
+    image: redis:7
+    container_name: langgraph-redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: redis-cli ping
+      interval: 5s
+      timeout: 1s
+      retries: 5
+
+  langgraph-postgres:
+    image: postgres:16
+    container_name: langgraph-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: langgraph
+      POSTGRES_USER: langgraph
+      POSTGRES_PASSWORD: langgraph
+    volumes:
+      - langgraph-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U langgraph
+      interval: 5s
+      timeout: 1s
+      retries: 5
+
+  langgraph-api:
+    image: langchain/langgraph-api:3.11
+    container_name: langgraph-api
+    ports:
+      - "3006:8000"
+    depends_on:
+      langgraph-redis:
+        condition: service_healthy
+      langgraph-postgres:
+        condition: service_healthy
+    environment:
+      REDIS_URI: redis://langgraph-redis:6379
+      POSTGRES_URI: postgres://langgraph:langgraph@langgraph-postgres:5432/langgraph
+      LANGCHAIN_TRACING_V2: "false"
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
+      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
+    volumes:
+      - ./agent.py:/app/agent.py:ro
+      - ./langgraph.json:/app/langgraph.json:ro
+      - ./.env:/app/.env:ro
+    command: --config /app/langgraph.json
+
+volumes:
+  langgraph-data:
+    driver: local
+
