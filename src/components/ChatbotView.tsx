@@ -1,0 +1,296 @@
+import React, { useState } from "react";
+import { CopilotChat } from "@copilotkit/react-ui";
+import { CopilotKit, useFrontendTool, useHumanInTheLoop } from "@copilotkit/react-core";
+import { type GraphData } from "../LineGraph";
+import CampaignDaypartingForm from "./CampaignDaypartingForm";
+import LineGraphWidget from "./LineGraphWidget";
+import type { CampaignData } from "./types";
+
+// Runtime URL - points to your backend
+const runtimeUrl = import.meta.env.VITE_COPILOT_RUNTIME_URL || "/cpk/copilotkit";
+
+const ChatbotViewContent: React.FC = () => {
+  // State for background (independent for chatbot)
+  const [background, setBackground] = useState<string>(
+    "var(--copilot-kit-background-color, #ffffff)"
+  );
+
+  // Manual trigger for testing Human-in-the-Loop
+  const [manualTrigger, setManualTrigger] = useState(false);
+
+  // State for showing/hiding suggestions
+  const [showSuggestions, setShowSuggestions] = useState(true);
+
+  // State for campaign dayparting
+  const [campaignData, setCampaignData] = useState<CampaignData>({
+    name: "",
+    platform: "amazon",
+    selectedDays: [] as string[],
+    timeSlots: {} as Record<string, string[]>,
+  });
+
+  // Register action for AI to call
+  useFrontendTool({
+    name: "change_background",
+    description:
+      "Change the background color of the chat. Can be anything that the CSS background attribute accepts. Regular colors, linear or radial gradients etc.",
+    parameters: [
+      {
+        name: "background",
+        type: "string",
+        description: "The background value. Prefer gradients. Only use when explicitly asked.",
+        required: true,
+      },
+    ],
+    handler: async ({ background }) => {
+      setBackground(background);
+      return `Successfully changed background to: ${background}`;
+    },
+  });
+
+  // Register action to trigger campaign dayparting setup
+  useFrontendTool({
+    name: "collect_user_prefs",
+    description: "Show an interactive form to set up campaign dayparting with platform selection, day selection, and time slot configuration",
+    parameters: [
+      {
+        name: "reason",
+        type: "string",
+        description: "Why we're setting up dayparting",
+        required: false,
+      },
+    ],
+    handler: async ({ reason: _reason }) => {
+      console.log("collect_user_prefs tool called");
+      return "__SHOW_PREFERENCE_FORM__";
+    },
+    render: ({ status, result }) => {
+      console.log("collect_user_prefs render called with:", { status, result });
+
+      if (status === "inProgress") {
+        return <div className="p-4 border rounded bg-gray-50">Loading preference form...</div>;
+      }
+
+      if (status === "complete" && result === "__SHOW_PREFERENCE_FORM__") {
+        console.log("Rendering dayparting campaign form");
+
+        return (
+          <CampaignDaypartingForm
+            campaignData={campaignData}
+            setCampaignData={setCampaignData}
+            onSubmit={() => {
+              console.log("Campaign saved:", campaignData);
+              alert(`✅ Campaign "${campaignData.name}" has been successfully added to ${campaignData.platform}!\n\n📅 Days: ${campaignData.selectedDays.join(', ')}\n⏰ Time slots configured for each selected day.`);
+            }}
+            isHumanInTheLoop={false}
+          />
+        );
+      }
+
+      return <></>;
+    }
+  });
+
+  // Register action for rendering line graphs
+  useFrontendTool({
+    name: "render_line_graph",
+    description: "Render a line graph using Highcharts. Provide data series with categories and values. Each series should have a name and data array.",
+    parameters: [
+      {
+        name: "title",
+        type: "string",
+        description: "The title of the graph",
+        required: true,
+      },
+      {
+        name: "xAxisCategories",
+        type: "string[]",
+        description: "Categories for the X-axis (e.g., months, years, etc.)",
+        required: true,
+      },
+      {
+        name: "xAxisTitle",
+        type: "string",
+        description: "Title for the X-axis",
+        required: true,
+      },
+      {
+        name: "yAxisTitle",
+        type: "string",
+        description: "Title for the Y-axis",
+        required: true,
+      },
+      {
+        name: "series",
+        type: "object[]",
+        description: "Array of data series. Each series object must have: name (string) and data (number array). Optional: color (string)",
+        required: true,
+      },
+    ],
+    handler: async (params) => {
+      // Debug logging - log all parameters
+      console.log('render_line_graph called with raw params:', params);
+      console.log('render_line_graph called with keys:', Object.keys(params));
+
+      const { title, xAxisCategories, xAxisTitle, yAxisTitle, series } = params;
+
+      // Debug logging
+      console.log('render_line_graph called with destructured:', {
+        title,
+        xAxisCategories,
+        xAxisTitle,
+        yAxisTitle,
+        series,
+        seriesType: typeof series,
+        seriesIsArray: Array.isArray(series)
+      });
+
+      // Validate required parameters
+      if (!title || !xAxisCategories || !xAxisTitle || !yAxisTitle) {
+        console.error('Missing required parameters:', { title, xAxisCategories, xAxisTitle, yAxisTitle });
+        return 'Error: Missing required parameters (title, xAxisCategories, xAxisTitle, yAxisTitle)';
+      }
+
+      if (!series) {
+        console.error('Series parameter is undefined:', series);
+        return 'Error: Series parameter is required and must be an array of data series';
+      }
+
+      if (!Array.isArray(series)) {
+        console.error('Series parameter is not an array:', series, typeof series);
+        return 'Error: Series parameter must be an array of data series';
+      }
+
+      if (series.length === 0) {
+        console.error('Series parameter is empty array:', series);
+        return 'Error: Series parameter must contain at least one data series';
+      }
+
+      const graphData: GraphData = {
+        title,
+        xAxis: {
+          categories: xAxisCategories,
+          title: xAxisTitle,
+        },
+        yAxis: {
+          title: yAxisTitle,
+        },
+        series,
+      };
+
+      
+      return graphData;
+    },
+    render: ({ args: _args, status, result }) => {
+      return <LineGraphWidget data={result} status={status} />;
+    }
+  });
+
+  useHumanInTheLoop({
+    name: "collectUserPreferences",
+    description: "Collect detailed preferences from the user",
+    parameters: [
+      {
+        name: "context",
+        type: "string",
+        description: "Context for why preferences are needed",
+        required: true,
+      },
+      {
+        name: "requiredFields",
+        type: "string[]",
+        description: "Fields to collect",
+        required: true,
+      },
+    ],
+    render: ({ args: _args, status, respond }) => {
+      console.log("Human-in-the-Loop render called with:", { args: _args, status, respond, manualTrigger });
+
+      // Show campaign form for both AI-triggered execution and manual testing
+      if ((status === "executing" && respond) || manualTrigger) {
+        console.log("Human-in-the-Loop: showing campaign form");
+
+        return (
+          <CampaignDaypartingForm
+            campaignData={campaignData}
+            setCampaignData={setCampaignData}
+            onSubmit={() => {
+              if (respond) {
+                respond(campaignData);
+              } else {
+                // Manual trigger case
+                console.log("Manual trigger: campaign submitted", campaignData);
+                alert(`✅ Campaign "${campaignData.name}" has been successfully added to ${campaignData.platform}!\n\n📅 Days: ${campaignData.selectedDays.join(', ')}\n⏰ Time slots configured for each selected day.`);
+                setManualTrigger(false);
+              }
+            }}
+            isHumanInTheLoop={true}
+          />
+        );
+      }
+
+      return <></>;
+    },
+  });
+
+  return (
+    <div
+      className="flex flex-col h-full w-full p-4 overflow-hidden"
+      style={{ background }}
+    >
+      {/* Chat Interface */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <CopilotChat
+          className="flex-1 max-w-4xl mx-auto w-full min-h-0"
+          onSubmitMessage={() => setShowSuggestions(false)}
+          labels={{
+            title: "Agentic Chat with Charts",
+            initial: "Hi! 👋 I'm an AI agent. I can help you create beautiful charts and graphs! How can I assist you today?",
+          }}
+          instructions="You are a helpful AI assistant. You can chat with users and help them with various tasks. You can render line graphs using Highcharts. When users ask for charts or graphs, use the render_line_graph action with appropriate data. When asked to change the background, use the change_background action. When users mention setting up campaigns, dayparting, scheduling campaigns, platform advertising, or want to configure campaign timing on Amazon/Flipkart/Myntra etc., ALWAYS use the collect_user_prefs tool - this will immediately show an interactive form in the chat where users can set up campaign dayparting with platform selection, day selection, and time slot configuration."
+          suggestions={showSuggestions ? [
+            {
+              title: "Create Campaign Dayparting",
+              message: "Create Campaign Dayparting",
+              partial: false,
+              className: "bg-green-600 hover:bg-green-700 text-white border-0 rounded-lg px-4 py-2 font-medium",
+            },
+            {
+              title: "Create a sales revenue chart for the last 6 months",
+              message: "Create a sales revenue chart for the last 6 months",
+              partial: false,
+              className: "bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-lg px-4 py-2 font-medium",
+            },
+            {
+              title: "Change the background to a beautiful gradient",
+              message: "Change the background to a beautiful gradient",
+              partial: false,
+              className: "bg-purple-600 hover:bg-purple-700 text-white border-0 rounded-lg px-4 py-2 font-medium",
+            },
+            {
+              title: "Create a comparison chart of multiple data series",
+              message: "Create a comparison chart of multiple data series",
+              partial: false,
+              className: "bg-orange-600 hover:bg-orange-700 text-white border-0 rounded-lg px-4 py-2 font-medium",
+            },
+          ] : []}
+        >
+        </CopilotChat>
+      </div>
+    </div>
+  );
+};
+
+const ChatbotView: React.FC = () => {
+  return (
+    <CopilotKit
+      runtimeUrl={runtimeUrl}
+      showDevConsole={false}
+    >
+      <ChatbotViewContent />
+    </CopilotKit>
+  );
+};
+
+export default ChatbotView;
+
