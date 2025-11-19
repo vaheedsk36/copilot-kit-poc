@@ -13,6 +13,7 @@
     "@copilotkit/react-core": "^1.10.6",
     "@copilotkit/react-textarea": "^1.10.6",
     "@copilotkit/react-ui": "^1.10.6",
+    "@highcharts/dashboards": "^4.0.0",
     "@langchain/core": "^1.0.6",
     "@langchain/langgraph": "^1.0.2",
     "@langchain/openai": "^1.1.2",

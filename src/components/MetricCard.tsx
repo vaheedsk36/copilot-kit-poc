@@ -56,8 +56,8 @@ const MetricCard: React.FC<MetricCardProps> = memo(({ data }) => {
   const config = colorConfig[color as keyof typeof colorConfig] || colorConfig.blue;
 
   const trendColorClasses = {
-    positive: "text-green-700 bg-green-50",
-    negative: "text-red-700 bg-red-50",
+    positive: "text-green-700",
+    negative: "text-red-700",
   };
 
   return (
