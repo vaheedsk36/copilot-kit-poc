@@ -1,6 +1,63 @@
-# 🎨 Reusable Components
+# 🏗️ Components Architecture
 
-This folder contains reusable React components extracted from the main AgenticChat component for better modularity and maintainability. These components are designed to work seamlessly with CopilotKit's tool rendering system.
+This directory contains React components following a modular, scalable architecture for the CopilotKit POC application.
+
+## 🏛️ Architectural Principles
+
+### 1. **Component Composition Pattern**
+- Components are composed rather than inherited
+- Each component has a single, clear responsibility
+- Complex UIs are built by combining simpler components
+
+### 2. **Separation of Concerns**
+- **UI Components**: Pure presentation components
+- **Container Components**: Handle data and state logic
+- **HOC/Components**: Handle cross-cutting concerns (AI, loading, errors)
+
+### 3. **Design System First**
+- Consistent styling through design tokens
+- Reusable UI primitives
+- Theme-aware components
+
+### 4. **Performance Optimized**
+- Memoization where appropriate
+- Lazy loading for heavy components
+- Efficient re-rendering strategies
+
+### 5. **Type Safety**
+- Strict TypeScript usage
+- Shared type definitions
+- Runtime type validation
+
+### 6. **DRY (Don't Repeat Yourself)**
+- Extract common logic into utilities
+- Create reusable hooks
+- Avoid code duplication
+
+## 📁 Directory Structure
+
+```
+src/components/
+├── core/                    # Core architectural components
+│   ├── ui/                 # Design system primitives
+│   ├── layout/             # Layout components
+│   ├── providers/          # Context providers
+│   └── hooks/              # Custom hooks
+├── widgets/                # Dashboard widgets
+│   ├── charts/             # Chart components
+│   ├── cards/              # Card components
+│   ├── tables/             # Table components
+│   └── shared/             # Shared widget utilities
+├── ai/                     # AI-powered components
+│   ├── chat/               # Chat interfaces
+│   ├── tools/              # AI tool integrations
+│   └── assistants/         # AI assistant components
+├── forms/                  # Form components
+├── feedback/               # Loading, error, skeleton components
+├── types.ts               # Shared type definitions
+├── index.ts               # Public API exports
+└── README.md             # This file
+```
 
 ## Components
 

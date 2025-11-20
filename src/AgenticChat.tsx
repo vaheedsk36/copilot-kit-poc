@@ -5,6 +5,7 @@ import ChatbotView from "./components/ChatbotView";
 import CanvasView from "./components/Canvas";
 import LiveboardSidebar, { type PinnedDashboard, type ViewType } from "./components/LiveboardSidebar";
 import DashboardRenderer from "./components/DashboardRenderer";
+import { Button } from "./components/core/ui";
 
 // Simple routing utilities
 const getCurrentRoute = () => {
@@ -159,18 +160,22 @@ const Chat = () => {
                   <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-800">{dashboard.name}</h2>
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
                         onClick={() => navigateTo('dashboards')}
-                        className="px-3 py-2 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                        variant="ghost"
+                        color="primary"
+                        size="sm"
                       >
                         ← Back to Dashboards
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => navigateTo('assistant', { mode: 'canvas' })}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                        variant="solid"
+                        color="primary"
+                        size="sm"
                       >
                         Create New
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-gray-50">
