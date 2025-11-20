@@ -7,9 +7,23 @@ import MetricCard from "./MetricCard";
 import DataTable from "./DataTable";
 import { SkeletonCard, SkeletonChart, SkeletonTable } from "./SkeletonLoader";
 import type { DashboardWidget, MetricCardData, TableData, WidgetType } from "./types";
+import type { PinnedDashboard } from "./LiveboardSidebar";
 
 // Runtime URL - points to your backend
 const runtimeUrl = import.meta.env.VITE_COPILOT_RUNTIME_URL || "/cpk/copilotkit";
+
+// Types for liveboard functionality
+interface CanvasContentProps {
+  pinnedDashboards: PinnedDashboard[];
+  setPinnedDashboards: React.Dispatch<React.SetStateAction<PinnedDashboard[]>>;
+  onPinDashboard: () => void;
+}
+
+interface CanvasViewProps {
+  pinnedDashboards: PinnedDashboard[];
+  setPinnedDashboards: React.Dispatch<React.SetStateAction<PinnedDashboard[]>>;
+  onPinDashboard: () => void;
+}
 
 // Individual memoized widget components that only re-render when their specific data changes
 const MemoizedMetricCard = React.memo(MetricCard, (prevProps, nextProps) => {
@@ -437,7 +451,11 @@ const DashboardContent: React.FC<{
 
 DashboardContent.displayName = 'DashboardContent';
 
-const CanvasContent: React.FC = () => {
+const CanvasContent: React.FC<CanvasContentProps> = ({
+  pinnedDashboards,
+  setPinnedDashboards,
+  onPinDashboard
+}) => {
   // State for storing all dashboard widgets
   const [dashboardWidgets, setDashboardWidgets] = useState<DashboardWidget[]>([]);
   // State for report metadata
@@ -485,6 +503,25 @@ const CanvasContent: React.FC = () => {
     return `${prefix}-${Date.now()}-${widgetIdCounter.current}-${Math.random().toString(36).substr(2, 9)}`;
   };
 
+  // Liveboard helper functions
+  const pinCurrentDashboard = useCallback(() => {
+    if (dashboardWidgets.length === 0) return;
+
+    const dashboardName = reportName || `Dashboard ${pinnedDashboards.length + 1}`;
+    const newPinnedDashboard: PinnedDashboard = {
+      id: generateUniqueId('dashboard'),
+      name: dashboardName,
+      widgets: [...dashboardWidgets],
+      createdAt: new Date(),
+      reportName: reportName
+    };
+
+    setPinnedDashboards(prev => [...prev, newPinnedDashboard]);
+    onPinDashboard();
+    return newPinnedDashboard.id;
+  }, [dashboardWidgets, reportName, pinnedDashboards.length, setPinnedDashboards, onPinDashboard]);
+
+
   // Helper function to check for duplicate widgets by title
   const isDuplicateWidget = (widgets: DashboardWidget[], newWidget: DashboardWidget): boolean => {
     if (newWidget.type === 'card') {
@@ -511,7 +548,15 @@ const CanvasContent: React.FC = () => {
   };
 
   // Helper function to create chart widget
-  const createChartWidget = (chartType: ChartType, params: any): DashboardWidget => {
+  interface ChartParams {
+    title?: string;
+    xAxisCategories?: string[];
+    xAxisTitle?: string;
+    yAxisTitle?: string;
+    series?: unknown;
+  }
+
+  const createChartWidget = (chartType: ChartType, params: ChartParams): DashboardWidget => {
     try {
       const { title, xAxisCategories, xAxisTitle, yAxisTitle, series } = params;
 
@@ -541,6 +586,15 @@ const CanvasContent: React.FC = () => {
         data: number[];
         color?: string;
       }
+
+      interface SeriesInput {
+        name?: string;
+        label?: string;
+        data?: number[];
+        values?: number[];
+        value?: number;
+        color?: string;
+      }
       
       console.log('createChartWidget - raw series:', series, 'type:', typeof series, 'isArray:', Array.isArray(series));
       
@@ -548,7 +602,7 @@ const CanvasContent: React.FC = () => {
       if (Array.isArray(series)) {
         console.log('Processing series as array, length:', series.length);
         const mapped = series
-          .map((s: any, index: number): SeriesItem | null => {
+          .map((s: SeriesInput | number, index: number): SeriesItem | null => {
             console.log(`Processing series item ${index}:`, s);
             if (typeof s === 'object' && s !== null) {
               // More lenient: try to extract data even if not in expected format
@@ -583,7 +637,7 @@ const CanvasContent: React.FC = () => {
       } else if (series && typeof series === 'object') {
         // Handle single series object
         console.log('Processing series as single object');
-        const s = series as any;
+        const s = series as SeriesInput;
         let dataArray: number[] = [];
         if (Array.isArray(s.data)) {
           dataArray = s.data;
@@ -1121,18 +1175,18 @@ const CanvasContent: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-white">
-      {/* Canvas View - Split Layout */}
+      {/* Original Split Layout for Assistant view */}
       <div className="flex-1 flex flex-row min-h-0 overflow-hidden">
         {/* Left Side - Chat */}
         <div className="w-1/2 border-r border-gray-200 flex flex-col min-h-0 overflow-hidden bg-white">
           <div className="p-4 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Chat</h2>
+            <h2 className="text-lg font-semibold text-gray-800">AI Assistant</h2>
           </div>
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             <CopilotChat
               className="flex-1 w-full min-h-0 canvas-chat"
               labels={{
-                title: "Chat",
+                title: "AI Assistant",
                 initial: "Hi! 👋 I'm an AI agent. How can I help you today?",
               }}
               instructions={`You are a helpful AI assistant for creating interactive dashboards. You can help users build comprehensive dashboards with charts, metric cards, and tables. All visualizations will appear on the canvas canvas (right side) while our conversation stays in the chat (left side).
@@ -1171,15 +1225,32 @@ IMPORTANT:
           </div>
         </div>
 
-        {/* Right Side - Canvas/Canvas */}
+        {/* Right Side - Canvas */}
         <div className="w-1/2 flex flex-col min-h-0 overflow-hidden bg-white">
           <div className="p-4 bg-gray-50 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800">Canvas</h2>
           </div>
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-gray-50">
             <div className="flex-1 w-full h-full bg-white border-2 border-dashed border-gray-300 rounded-lg m-4 overflow-auto relative">
-              {/* Canvas/Canvas Area */}
+              {/* Canvas Area */}
               <div className="absolute inset-0 p-8">
+                {/* Pin Dashboard Button - Show above dashboard when widgets exist */}
+                {dashboardWidgets.length > 0 && (
+                  <div className="mb-6 flex justify-end">
+                    <button
+                      onClick={() => {
+                        pinCurrentDashboard();
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      Pin Dashboard
+                    </button>
+                  </div>
+                )}
+
                 {dashboardWidgets.length === 0 ? (
                   <div className="text-center text-gray-400 mt-20">
                     <svg
@@ -1242,16 +1313,23 @@ IMPORTANT:
   );
 };
 
-const CanvasView: React.FC = () => {
+const CanvasView: React.FC<CanvasViewProps> = ({
+  pinnedDashboards,
+  setPinnedDashboards,
+  onPinDashboard
+}) => {
   return (
     <CopilotKit
       runtimeUrl={runtimeUrl}
       showDevConsole={false}
     >
-      <CanvasContent />
+      <CanvasContent
+        pinnedDashboards={pinnedDashboards}
+        setPinnedDashboards={setPinnedDashboards}
+        onPinDashboard={onPinDashboard}
+      />
     </CopilotKit>
   );
 };
 
 export default CanvasView;
-
