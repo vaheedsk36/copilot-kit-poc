@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { CopilotChat } from "@copilotkit/react-ui";
-import { CopilotKit, useFrontendTool, useHumanInTheLoop } from "@copilotkit/react-core";
+import { CopilotKit, useFrontendTool, useHumanInTheLoop, useCopilotAction } from "@copilotkit/react-core";
 import { type GraphData } from "../LineGraph";
 import CampaignDaypartingForm from "./CampaignDaypartingForm";
 import LineGraphWidget from "./LineGraphWidget";
+import ReportGenerationWidget from "./ReportGenerationWidget";
 import type { CampaignData } from "./types";
 
 // Runtime URL - points to your backend
@@ -233,6 +234,43 @@ const ChatbotViewContent: React.FC = () => {
     },
   });
 
+  // Handle backend tool call for report generation
+  // This intercepts the backend tool and renders our custom component
+  useCopilotAction({
+    name: "generate_report",
+    description: "Generate a comprehensive report (backend tool)",
+    parameters: [
+      {
+        name: "reportType",
+        type: "string",
+        description: "Type of report to generate",
+        required: true,
+      },
+      {
+        name: "timeRange",
+        type: "string",
+        description: "Time range for the report",
+        required: false,
+      },
+    ],
+    handler: async () => {
+      // This handler won't be called since it's a backend tool
+      // The backend tool will execute, and we'll render the result
+      return {};
+    },
+    render: ({ status, result, args }) => {
+      console.log("generate_report render called:", { status, result, args });
+      
+      return (
+        <ReportGenerationWidget
+          status={status}
+          result={result}
+          args={args}
+        />
+      );
+    },
+  });
+
   return (
     <div
       className="flex flex-col h-full w-full p-4 overflow-hidden"
@@ -247,8 +285,14 @@ const ChatbotViewContent: React.FC = () => {
             title: "Agentic Chat with Charts",
             initial: "Hi! 👋 I'm an AI agent. I can help you create beautiful charts and graphs! How can I assist you today?",
           }}
-          instructions="You are a helpful AI assistant. You can chat with users and help them with various tasks. You can render line graphs using Highcharts. When users ask for charts or graphs, use the render_line_graph action with appropriate data. When asked to change the background, use the change_background action. When users mention setting up campaigns, dayparting, scheduling campaigns, platform advertising, or want to configure campaign timing on Amazon/Flipkart/Myntra etc., ALWAYS use the collect_user_prefs tool - this will immediately show an interactive form in the chat where users can set up campaign dayparting with platform selection, day selection, and time slot configuration."
+          instructions="You are a helpful AI assistant. You can chat with users and help them with various tasks. You can render line graphs using Highcharts. When users ask for charts or graphs, use the render_line_graph action with appropriate data. When asked to change the background, use the change_background action. When users mention setting up campaigns, dayparting, scheduling campaigns, platform advertising, or want to configure campaign timing on Amazon/Flipkart/Myntra etc., ALWAYS use the collect_user_prefs tool - this will immediately show an interactive form in the chat where users can set up campaign dayparting with platform selection, day selection, and time slot configuration. When users ask to generate a report, create a report, or want to see analytics/summary data, use the generate_report backend tool. This tool will create a todo list, fetch data from multiple sources, process it, and render a comprehensive report with metrics and insights."
           suggestions={showSuggestions ? [
+            {
+              title: "Generate a sales report",
+              message: "Generate a sales report for the last 30 days",
+              partial: false,
+              className: "bg-indigo-600 hover:bg-indigo-700 text-white border-0 rounded-lg px-4 py-2 font-medium",
+            },
             {
               title: "Create Campaign Dayparting",
               message: "Create Campaign Dayparting",

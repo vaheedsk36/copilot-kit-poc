@@ -2,15 +2,14 @@ import React, { useState } from "react";
 import "@copilotkit/react-ui/styles.css";
 import "./style.css";
 import ChatbotView from "./components/ChatbotView";
-import LiveboardView from "./components/LiveboardView";
+import CanvasView from "./components/Canvas";
 
 const AgenticChat: React.FC = () => {
   return <Chat />;
 };
 
 const Chat = () => {
-  // State for view selection (chatbot or liveboard)
-  const [viewMode, setViewMode] = useState<"chatbot" | "liveboard">("chatbot");
+  const [viewMode, setViewMode] = useState<"chatbot" | "canvas">("chatbot");
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-white">
@@ -24,11 +23,11 @@ const Chat = () => {
           <select
             id="view-select"
             value={viewMode}
-            onChange={(e) => setViewMode(e.target.value as "chatbot" | "liveboard")}
+            onChange={(e) => setViewMode(e.target.value as "chatbot" | "canvas")}
             className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
           >
             <option value="chatbot">Chatbot</option>
-            <option value="liveboard">Liveboard</option>
+            <option value="canvas">Canvas</option>
           </select>
         </div>
       </header>
@@ -38,7 +37,7 @@ const Chat = () => {
         {viewMode === "chatbot" ? (
           <ChatbotView />
         ) : (
-          <LiveboardView />
+          <CanvasView />
         )}
       </div>
     </div>

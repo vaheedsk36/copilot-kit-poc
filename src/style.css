@@ -132,21 +132,21 @@
     color: #111827 !important;
   }
 
-  /* Liveboard chat - input should stay on the left side */
-  .liveboard-chat {
+  /* Canvas chat - input should stay on the left side */
+  .canvas-chat {
     position: relative !important;
   }
 
-  .liveboard-chat > div:last-child,
-  .liveboard-chat form,
-  .liveboard-chat [role="form"],
-  .liveboard-chat [data-copilot-chat-input],
-  .liveboard-chat [class*="input-container"],
-  .liveboard-chat [class*="InputContainer"],
-  .liveboard-chat [class*="input-wrapper"],
-  .liveboard-chat [class*="InputWrapper"],
-  .liveboard-chat [class*="copilot-chat-input"],
-  .liveboard-chat [class*="CopilotChatInput"] {
+  .canvas-chat > div:last-child,
+  .canvas-chat form,
+  .canvas-chat [role="form"],
+  .canvas-chat [data-copilot-chat-input],
+  .canvas-chat [class*="input-container"],
+  .canvas-chat [class*="InputContainer"],
+  .canvas-chat [class*="input-wrapper"],
+  .canvas-chat [class*="InputWrapper"],
+  .canvas-chat [class*="copilot-chat-input"],
+  .canvas-chat [class*="CopilotChatInput"] {
     position: absolute !important;
     bottom: 0 !important;
     left: 0 !important;
